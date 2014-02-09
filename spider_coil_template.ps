@@ -1,0 +1,122 @@
+% Spider coil template by Robert Liesenfeld AK6L <ak6l@ak6l.org>, Twitter @AK6L
+% Inspired by Alan Yates VK2ZAY's Advent Calendar of Circuits YouTube series,
+% and by Dave Schmarder's Homemade Radios http://makearadio.com/
+% Released under the MIT License.
+%
+% If you get some use out of this template, please let me know!
+%
+% Variables - change these to your liking
+/coilradius_inches 3 def	% Radius of coil template, in inches
+/nslots 11 def           	% Number of slots
+/slotdepth 0.3333 def        	% As a fraction of coil radius
+/slotgap 2 def			% In degrees
+/fontsize 9 def
+/fontname /Courier def
+
+/coilradius coilradius_inches 72 mul def       % inches * 72 = radius in points
+/slotradius coilradius slotdepth mul coilradius exch sub def
+
+% Constants
+/USLetterWidth 8.5 72 mul def
+/USLetterHeight 11 72 mul def
+
+/pagecenter { //USLetterWidth 2 div //USLetterHeight 2 div } def
+
+% Draw a crosshair; expects x y size
+% Size is the length of each line making up the crosshair.
+/crosshair {
+    2 div /armlength exch def
+    /y exch def
+    /x exch def
+    x y armlength sub % x y-armlength
+    moveto
+    x y armlength add % x y+armlength
+    lineto stroke
+    x y exch armlength sub exch moveto
+    x y exch armlength add exch lineto stroke
+} def
+
+% Draw a 3-sided slot box
+% Expects on stack: cx cy r angle
+/slotbox {
+    /angle exch def
+    /edgeradius exch def
+    /cy exch def
+    /cx exch def
+    /gap slotgap def
+    /sbangles 2 array def
+    
+    0 1 1 {
+        /gapmult exch def
+        /slotangle angle gap gapmult mul sub def
+        edgeradius slotangle cos mul cx add
+        edgeradius slotangle sin mul cy add
+        moveto
+        slotradius slotangle cos mul cx add
+        slotradius slotangle sin mul cy add
+        lineto
+        stroke
+        sbangles gapmult slotangle put
+    } for
+    % 10 10 moveto slotradius 20 string cvs show
+    cx cy slotradius
+    sbangles 0 get
+    sbangles 1 get
+    arcn stroke
+} def
+
+% Draw N arcs with 3 point gaps.
+% Expects on stack: cx cy radius nslots
+/brokencircle {
+    /nslots exch def            % Number of slots
+    /r exch def                 % Radius
+    /cy exch def                % Center Y
+    /cx exch def                % Center X
+    /gap slotgap def            % Gap between arcs, in degrees
+
+    /degper 360 nslots div def  % How many degrees per arc?
+    0                           % Loop start index
+    degper			% Loop increment
+    360 degper sub              % Loop end: Last arc ends at 360 - (360 / nslots)
+    {
+        dup /idx exch def       % Save a copy of the loop index
+        cx cy r 4 3 roll        % Set up for arcn
+        dup degper add          % Arc from index to (index+degper)
+        gap sub                 % ...minus the gap.
+        arc stroke		% Draw the arc
+
+        cx cy r idx slotbox
+        
+    } for
+} def
+
+% string1 string2 append
+% Found at http://www.ira.inaf.it/manuals/Postscrip/chapter7, comp.lang.postscript FAQ
+/append {
+    2 copy length exch length add  % find the length of the new.
+    string dup     % string1 string2 string string
+    4 2 roll       % string string string1 string2
+    2 index 0 3 index
+    % string string string1 string2 string 0 string1
+    putinterval    % stuff the first string in.
+    % string string string1 string2
+    exch length exch putinterval
+} bind def
+
+% Draw the template
+pagecenter 5 crosshair
+pagecenter exch 72 3 div sub exch 3 crosshair
+pagecenter exch 72 3 div add exch 3 crosshair
+pagecenter coilradius nslots brokencircle
+fontname fontsize selectfont
+pagecenter moveto
+(Spider Coil Template) dup stringwidth fontsize 1.5 mul sub neg exch 2 div neg exch rmoveto show
+pagecenter moveto
+coilradius_inches 2 mul (     ) cvs
+(" diameter) append
+dup stringwidth fontsize 2 div sub neg exch 2 div neg exch rmoveto show
+pagecenter moveto
+(Robert Liesenfeld AK6L) dup stringwidth fontsize add neg exch 2 div neg exch rmoveto show
+pagecenter moveto
+(Twitter @AK6L) dup stringwidth fontsize 2 mul add neg exch 2 div neg exch rmoveto show
+showpage
